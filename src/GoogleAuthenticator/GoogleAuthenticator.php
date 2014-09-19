@@ -12,6 +12,7 @@
 namespace GoogleAuthenticator;
 
 use Base32\Base32;
+use Zend\Math\Rand;
 
 /**
  * Class GoogleAuthenticator
@@ -68,8 +69,8 @@ class GoogleAuthenticator
         $secretKey = '';
 
         for ($i = 0; $i < static::SECRET_LENGTH; $i++) {
-
-            $secretKey .= $base32Chars[array_rand($base32Chars)];
+            $key = Rand::getInteger(0,count($base32Chars)-1);
+            $secretKey .= $base32Chars[$key];
         }
 
         return $secretKey;
@@ -104,28 +105,65 @@ class GoogleAuthenticator
     }
 
     /**
+     * @return string
+     */
+    public function setSecretKey($secretkey)
+    {
+        $this->secretKey = $secretkey;
+
+        return $this;
+    }
+
+    /**
+     * Check if the code is correct. This will accept codes starting from $discrepancy*30sec ago to $discrepancy*30sec from now
+     *
      * @param  string $code
+     * @param  int    $discrepancy This is the allowed time drift in 30 second units (8 means 4 minutes before or after)
      * @return bool
      */
-    public function verifyCode($code)
+    public function verifyCode($code, $discrepancy = 1)
     {
-        return ((string) $code) === $this->getCode();
+        $currentTimeSlice = $this->getTimeIndex();
+
+        for ($i = -$discrepancy; $i <= $discrepancy; $i++) {
+            $calculatedCode = $this->getCode($currentTimeSlice + $i);
+            if ($calculatedCode == $code) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
      * @return string
      */
-    public function getCode()
+    public function getCode($timeSlice = null)
     {
         $secretkey = Base32::decode($this->secretKey);
 
-        $hm = hash_hmac('SHA1', chr(0) . chr(0) . chr(0) . chr(0) . pack('N*', $this->getTimeIndex()), $secretkey, true);
+        if ($timeSlice === null) {
+            $timeSlice = $this->getTimeIndex();
+        }
 
-        $value = unpack('N', substr($hm, ord(substr($hm, -1)) & 0x0F, 4));
+        // Pack time into binary string
+        $time = chr(0).chr(0).chr(0).chr(0).pack('N*', $timeSlice);
+        // Hash it with users secret key
+        $hm = hash_hmac('SHA1', $time, $secretkey, true);
+        // Use last nipple of result as index/offset
+        $offset = ord(substr($hm, -1)) & 0x0F;
+        // grab 4 bytes of the result
+        $hashpart = substr($hm, $offset, 4);
 
-        $value = $value[1] & 0x7FFFFFFF;
+        // Unpak binary value
+        $value = unpack('N', $hashpart);
+        $value = $value[1];
+        // Only 32 bits
+        $value = $value & 0x7FFFFFFF;
 
-        return str_pad($value % pow(10, static::CODE_LENGTH), static::CODE_LENGTH, '0', STR_PAD_LEFT);
+        $modulo = pow(10, static::CODE_LENGTH);
+
+        return str_pad($value % $modulo, static::CODE_LENGTH, '0', STR_PAD_LEFT);
     }
 
     /**
