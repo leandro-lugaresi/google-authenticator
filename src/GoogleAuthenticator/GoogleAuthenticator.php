@@ -25,6 +25,9 @@ class GoogleAuthenticator
     const CODE_LENGTH = 6;
     const SECRET_LENGTH = 16;
 
+    /** @var string $issuer */
+    protected $issuer;
+
     /** @var string $secretKey */
     protected $secretKey;
 
@@ -38,7 +41,7 @@ class GoogleAuthenticator
     );
 
     /**
-     * @param  null                         $secretKey
+     * @param  string $secretKey
      * @throws GoogleAuthenticatorException
      */
     public function __construct($secretKey = null)
@@ -46,11 +49,10 @@ class GoogleAuthenticator
         $this->secretKey = $secretKey;
 
         if (is_null($this->secretKey)) {
-
             $this->secretKey = $this->generateSecretKey();
         }
 
-        if(static::SECRET_LENGTH !== strlen($this->secretKey)
+        if (static::SECRET_LENGTH !== strlen($this->secretKey)
             || 0 !== count(array_diff(str_split($this->secretKey), $this->base32Chars))) {
 
             throw new GoogleAuthenticatorException('Invalid secret key');
@@ -83,6 +85,12 @@ class GoogleAuthenticator
      */
     public function getQRCodeUrl($applicationName, $size = 200)
     {
+        $params = array('secret' => $this->getSecretKey());
+
+        if ($this->issuer) {
+            $params['issuer'] = $this->issuer;
+        }
+
         return str_replace(
             array(
                 '{chs}',
@@ -90,7 +98,7 @@ class GoogleAuthenticator
             ),
             array(
                 $size . 'x' . $size,
-                urlencode('otpauth://totp/' . $applicationName . '?secret=' . $this->getSecretKey())
+                urlencode('otpauth://totp/' . $applicationName . '?' . http_build_query($params))
             ),
             static::API_URL
         );
@@ -105,11 +113,25 @@ class GoogleAuthenticator
     }
 
     /**
-     * @return string
+     * Set the issuer name (Appears above code in Google Authenticator)
+     *
+     * @param string $issuer
+     * @return GoogleAuthenticator
      */
-    public function setSecretKey($secretkey)
+    public function setIssuer($issuer)
     {
-        $this->secretKey = $secretkey;
+        $this->issuer = $issuer;
+
+        return $this;
+    }
+
+    /**
+     * @param string $secretKey
+     * @return GoogleAuthenticator
+     */
+    public function setSecretKey($secretKey)
+    {
+        $this->secretKey = $secretKey;
 
         return $this;
     }
@@ -140,7 +162,7 @@ class GoogleAuthenticator
      */
     public function getCode($timeSlice = null)
     {
-        $secretkey = Base32::decode($this->secretKey);
+        $secretKey = Base32::decode($this->secretKey);
 
         if ($timeSlice === null) {
             $timeSlice = $this->getTimeIndex();
@@ -149,7 +171,7 @@ class GoogleAuthenticator
         // Pack time into binary string
         $time = chr(0).chr(0).chr(0).chr(0).pack('N*', $timeSlice);
         // Hash it with users secret key
-        $hm = hash_hmac('SHA1', $time, $secretkey, true);
+        $hm = hash_hmac('SHA1', $time, $secretKey, true);
         // Use last nipple of result as index/offset
         $offset = ord(substr($hm, -1)) & 0x0F;
         // grab 4 bytes of the result
