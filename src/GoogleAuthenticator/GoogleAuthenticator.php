@@ -38,7 +38,7 @@ class GoogleAuthenticator
     );
 
     /**
-     * @param  null                         $secretKey
+     * @param  string $secretKey
      * @throws GoogleAuthenticatorException
      */
     public function __construct($secretKey = null)
@@ -46,11 +46,10 @@ class GoogleAuthenticator
         $this->secretKey = $secretKey;
 
         if (is_null($this->secretKey)) {
-
             $this->secretKey = $this->generateSecretKey();
         }
 
-        if(static::SECRET_LENGTH !== strlen($this->secretKey)
+        if (static::SECRET_LENGTH !== strlen($this->secretKey)
             || 0 !== count(array_diff(str_split($this->secretKey), $this->base32Chars))) {
 
             throw new GoogleAuthenticatorException('Invalid secret key');
@@ -105,11 +104,12 @@ class GoogleAuthenticator
     }
 
     /**
-     * @return string
+     * @param string $secretKey
+     * @return GoogleAuthenticator
      */
-    public function setSecretKey($secretkey)
+    public function setSecretKey($secretKey)
     {
-        $this->secretKey = $secretkey;
+        $this->secretKey = $secretKey;
 
         return $this;
     }
@@ -140,7 +140,7 @@ class GoogleAuthenticator
      */
     public function getCode($timeSlice = null)
     {
-        $secretkey = Base32::decode($this->secretKey);
+        $secretKey = Base32::decode($this->secretKey);
 
         if ($timeSlice === null) {
             $timeSlice = $this->getTimeIndex();
@@ -149,7 +149,7 @@ class GoogleAuthenticator
         // Pack time into binary string
         $time = chr(0).chr(0).chr(0).chr(0).pack('N*', $timeSlice);
         // Hash it with users secret key
-        $hm = hash_hmac('SHA1', $time, $secretkey, true);
+        $hm = hash_hmac('SHA1', $time, $secretKey, true);
         // Use last nipple of result as index/offset
         $offset = ord(substr($hm, -1)) & 0x0F;
         // grab 4 bytes of the result
