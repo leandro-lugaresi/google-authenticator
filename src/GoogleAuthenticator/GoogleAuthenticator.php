@@ -25,6 +25,9 @@ class GoogleAuthenticator
     const CODE_LENGTH = 6;
     const SECRET_LENGTH = 16;
 
+    /** @var string $issuer */
+    protected $issuer;
+
     /** @var string $secretKey */
     protected $secretKey;
 
@@ -82,6 +85,12 @@ class GoogleAuthenticator
      */
     public function getQRCodeUrl($applicationName, $size = 200)
     {
+        $params = array('secret' => $this->getSecretKey());
+
+        if ($this->issuer) {
+            $params['issuer'] = $this->issuer;
+        }
+
         return str_replace(
             array(
                 '{chs}',
@@ -89,7 +98,7 @@ class GoogleAuthenticator
             ),
             array(
                 $size . 'x' . $size,
-                urlencode('otpauth://totp/' . $applicationName . '?secret=' . $this->getSecretKey())
+                urlencode('otpauth://totp/' . $applicationName . '?' . http_build_query($params))
             ),
             static::API_URL
         );
@@ -101,6 +110,19 @@ class GoogleAuthenticator
     public function getSecretKey()
     {
         return $this->secretKey;
+    }
+
+    /**
+     * Set the issuer name (Appears above code in Google Authenticator)
+     *
+     * @param string $issuer
+     * @return GoogleAuthenticator
+     */
+    public function setIssuer($issuer)
+    {
+        $this->issuer = $issuer;
+
+        return $this;
     }
 
     /**

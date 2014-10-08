@@ -1,13 +1,30 @@
 <?php
 
-namespace GoogleAuthenticatorTest;
+namespace GoogleAuthenticator;
 
-use GoogleAuthenticator\GoogleAuthenticator;
-
-class GoogleAuthenticatorTest extends PHPUnit_Framework_TestCase
+/**
+ * Override time() in current namespace for testing
+ * see http://www.schmengler-se.de/en/2011/03/php-mocking-built-in-functions-like-time-in-unit-tests/
+ *
+ * @return int
+ */
+function time()
 {
-    /* @var $googleAuthenticator GoogleAuthenticator */
+    return GoogleAuthenticatorTest::$now ?: time();
+}
+
+
+class GoogleAuthenticatorTest extends \PHPUnit_Framework_TestCase
+{
+    /** @var $googleAuthenticator GoogleAuthenticator */
     protected $googleAuthenticator;
+
+    /**
+     * Timestamp that will be returned by time()
+     *
+     * @var int $now
+     */
+    public static $now;
 
     protected function setUp()
     {
@@ -18,9 +35,10 @@ class GoogleAuthenticatorTest extends PHPUnit_Framework_TestCase
     {
         // Secret, time, code
         return array(
-            array('SECRET', '0', '200470'),
-            array('SECRET', '1385909245', '780018'),
-            array('SECRET', '1378934578', '705013'),
+            array('SECRET', 0, '857148'),
+            array('SECRET', 1385909245, '979377'),
+            array('SECRET', 1378934578, '560773'),
+            array('SECRET2', 1378934578, '394728'),
         );
     }
 
@@ -34,17 +52,20 @@ class GoogleAuthenticatorTest extends PHPUnit_Framework_TestCase
     {
         $ga = $this->googleAuthenticator;
         $secret = $ga->generateSecretKey();
-        $this->assertEquals(strlen($secret), 16);
+        $this->assertEquals(16, strlen($secret));
     }
 
     /**
      * @dataProvider codeProvider
      */
-    public function testgetCodeReturnsCorrectValues($secret, $timeSlice, $code)
+    public function testgetCodeReturnsCorrectValues($secret, $time, $code)
     {
-        $generatedCode = $this->googleAuthenticator->getCode($secret, $timeSlice);
+        static::$now = $time;
 
-        $this->assertEquals($code, $generatedCode);
+        $this->googleAuthenticator->setSecretKey($secret);
+        $generatedCode = $this->googleAuthenticator->getCode($time);
+
+        $this->assertEquals($code, $generatedCode, 'Invalid code for ' . $secret . ' at ' . $time);
     }
 
     public function testgetQRCodeUrlReturnsCorrectUrl()
@@ -56,12 +77,29 @@ class GoogleAuthenticatorTest extends PHPUnit_Framework_TestCase
         $urlParts = parse_url($url);
         parse_str($urlParts['query'], $queryStringArray);
 
-        $this->assertEquals($urlParts['scheme'], 'https');
-        $this->assertEquals($urlParts['host'], 'chart.googleapis.com');
-        $this->assertEquals($urlParts['path'], '/chart');
+        $this->assertEquals('https', $urlParts['scheme']);
+        $this->assertEquals('chart.googleapis.com', $urlParts['host']);
+        $this->assertEquals('/chart', $urlParts['path']);
 
         $expectedChl = 'otpauth://totp/' . $name . '?secret=' . $secret;
-        $this->assertEquals($queryStringArray['chl'], $expectedChl);
+        $this->assertEquals($expectedChl, $queryStringArray['chl']);
+    }
+
+    public function testgetQRCodeUrlReturnsCorrectUrlWhenIssuerSet()
+    {
+        $secret = 'SECRET';
+        $name   = 'Test';
+        $issuer = 'Test Co';
+        $url = $this->googleAuthenticator
+            ->setSecretKey($secret)
+            ->setIssuer($issuer)
+            ->getQRCodeUrl($name);
+
+        $urlParts = parse_url($url);
+        parse_str($urlParts['query'], $queryStringArray);
+
+        $expectedChl = 'otpauth://totp/' . $name . '?secret=' . $secret . '&issuer=' . urlencode($issuer);
+        $this->assertEquals($expectedChl, $queryStringArray['chl']);
     }
 
     public function testVerifyCode()
