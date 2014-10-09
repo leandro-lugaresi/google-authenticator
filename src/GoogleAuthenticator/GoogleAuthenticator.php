@@ -6,7 +6,6 @@
  * @package  GoogleAuthenticator
  * @author   Leandro Lugaresi <leandrolugaresi92@gmail.com>
  * @license  http://www.gnu.org/copyleft/gpl.html GNU General Public License 3
- * @link     https://github.com/johnstyle/google-authenticator
  */
 
 namespace GoogleAuthenticator;
@@ -14,11 +13,6 @@ namespace GoogleAuthenticator;
 use Base32\Base32;
 use Zend\Math\Rand;
 
-/**
- * Class GoogleAuthenticator
- *
- * @author   Leandro Lugaresi <leandrolugaresi92@gmail.com>
- */
 class GoogleAuthenticator
 {
     const API_URL = 'https://chart.googleapis.com/chart?chs={chs}&chld=M|0&cht=qr&chl={chl}';
@@ -41,7 +35,7 @@ class GoogleAuthenticator
     );
 
     /**
-     * @param  string $secretKey
+     * @param  string                       $secretKey
      * @throws GoogleAuthenticatorException
      */
     public function __construct($secretKey = null)
@@ -115,7 +109,7 @@ class GoogleAuthenticator
     /**
      * Set the issuer name (Appears above code in Google Authenticator)
      *
-     * @param string $issuer
+     * @param  string              $issuer
      * @return GoogleAuthenticator
      */
     public function setIssuer($issuer)
@@ -126,7 +120,7 @@ class GoogleAuthenticator
     }
 
     /**
-     * @param string $secretKey
+     * @param  string              $secretKey
      * @return GoogleAuthenticator
      */
     public function setSecretKey($secretKey)
