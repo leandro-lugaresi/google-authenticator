@@ -1,8 +1,8 @@
 {
     "name": "leandrolugaresi/google-authenticator",
     "type": "library",
-    "description": "PHP 5 Google Authenticator",
-    "keywords": ["PHP 5", "PHP5", "Google", "Authenticator"],
+    "description": "PHP Google Authenticator",
+    "keywords": ["PHP", "Google", "Authenticator"],
     "homepage": "https://github.com/leandro-lugaresi/google-authenticator",
     "license": "GPL-3.0",
     "authors": [
