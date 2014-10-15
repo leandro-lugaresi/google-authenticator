@@ -1,6 +1,9 @@
 google-authenticator
 ====================
 
+[![Latest Stable Version](https://poser.pugx.org/leandrolugaresi/google-authenticator/v/stable.svg)](https://packagist.org/packages/leandrolugaresi/google-authenticator) [![Total Downloads](https://poser.pugx.org/leandrolugaresi/google-authenticator/downloads.svg)](https://packagist.org/packages/leandrolugaresi/google-authenticator) [![Latest Unstable Version](https://poser.pugx.org/leandrolugaresi/google-authenticator/v/unstable.svg)](https://packagist.org/packages/leandrolugaresi/google-authenticator) [![License](https://poser.pugx.org/leandrolugaresi/google-authenticator/license.svg)](https://packagist.org/packages/leandrolugaresi/google-authenticator)
+[ ![Codeship Status for leandro-lugaresi/google-authenticator](https://www.codeship.io/projects/c56f02e0-2489-0132-ed0d-5e8cf715c71c/status?branch=master)](https://www.codeship.io/projects/36901)
+
 Introduction
 ------------
 
