@@ -1,6 +1,8 @@
 google-authenticator
 ====================
 
+> [DEPRECATED] use the [antonioribeiro/google2fa](https://github.com/antonioribeiro/google2fa) instead!
+
 [![Latest Stable Version](https://poser.pugx.org/leandrolugaresi/google-authenticator/v/stable.svg)](https://packagist.org/packages/leandrolugaresi/google-authenticator) [![Total Downloads](https://poser.pugx.org/leandrolugaresi/google-authenticator/downloads.svg)](https://packagist.org/packages/leandrolugaresi/google-authenticator) [![Latest Unstable Version](https://poser.pugx.org/leandrolugaresi/google-authenticator/v/unstable.svg)](https://packagist.org/packages/leandrolugaresi/google-authenticator) [![License](https://poser.pugx.org/leandrolugaresi/google-authenticator/license.svg)](https://packagist.org/packages/leandrolugaresi/google-authenticator)
 [ ![Codeship Status for leandro-lugaresi/google-authenticator](https://www.codeship.io/projects/c56f02e0-2489-0132-ed0d-5e8cf715c71c/status?branch=master)](https://www.codeship.io/projects/36901)
 
@@ -35,7 +37,7 @@ Installation
 Usage
 -----
 
-###Step 1 - Register application
+### Step 1 - Register application
 
 Show the QrCode and the form:
 
@@ -60,7 +62,7 @@ Verify the code from form and save the secretKey of this user:
     }
 ```
 
-###Step 2 - Verify Code at login
+### Step 2 - Verify Code at login
 
 ```PHP
     $google = new GoogleAuthenticator($user->getSecretKey());
@@ -72,6 +74,3 @@ Verify the code from form and save the secretKey of this user:
         // OK - aloowed login
     }
 ```
-
-##Demonstration
-[http://googleauthenticator.leandrolugaresi.com.br](http://googleauthenticator.leandrolugaresi.com.br)
